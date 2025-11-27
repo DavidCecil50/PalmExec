@@ -1,0 +1,14 @@
+e
+var p
+set_pgstat_mode 2
+set_max_bandwidth 40
+set_autoranging ba 10u 1m
+cell_off
+meas_loop_ocp p 1000m 10
+pck_start
+pck_add p
+pck_end
+endloop
+on_finished:
+cell_off
+

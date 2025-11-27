@@ -1,0 +1,25 @@
+e
+var f
+var r
+var i
+# Select channel 0.
+set_pgstat_chan 0
+# High speed mode is required for EIS.
+set_pgstat_mode 3
+# Autorange starting at 1 mA down to 10 uA.
+set_autoranging ba 10u 1m
+# Cell must be on to do measurements.
+cell_on
+# Run actual EIS measurement.
+meas_loop_eis f r i 10m 200k 200 11 0
+    # Send measurement package containing frequency, Z-real and Z-imaginary.
+    pck_start
+    pck_add f
+    pck_add r
+    pck_add i
+    pck_end
+endloop
+# Turn cell off when finished or aborted.
+on_finished:
+cell_off
+
