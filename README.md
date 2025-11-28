@@ -2,7 +2,7 @@ PalmExec works with the Palmsens BV Sensit Smart. The Sensit Smart unit performs
 
 PalmExec reads and executes MethodSCRIPTs. Methodscripts give complete control of the Sensit Smart. They are texts that are simple to edit prior to running PalmExec. Scripts permit the sequencing of many electrochemical methods. Once started scripts can run for minutes, hours or days. 
 
-More on scripts in https://www.palmsens.com/app/uploads/2025/10/MethodSCRIPT-v1_8.pdf under the heading EMStat Pico. Sample scripts for linear sweep voltammetry with chronoamperometry, impedance spectroscopy, open circuit potentiometry and square wave voltammetry are included with PalmExec.
+More on scripts in https://www.palmsens.com/app/uploads/2025/10/MethodSCRIPT-v1_8.pdf under the heading EMStat Pico. Sample scripts for cyclic voltammetry, linear sweep voltammetry with chronoamperometry, impedance spectroscopy, open circuit potentiometry and square wave voltammetry are included with PalmExec.
 
 The app saves data in semicolon separated text files, either in the phone’s internal RAM or on an SD Card depending on how the phone/tablet is set up.
 
