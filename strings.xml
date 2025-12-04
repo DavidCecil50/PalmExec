@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">PalmExec</string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="response">Response</string>
+    <string name="script">Scripts</string>
+    <string name="start">Start</string>
+    <string name="abort">Abort</string>
 </resources>

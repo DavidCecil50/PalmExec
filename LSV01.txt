@@ -1,0 +1,57 @@
+e
+var c
+var p
+# Select channel 0.
+set_pgstat_chan 0
+# Low speed mode is fast enough.
+set_pgstat_mode 2
+# Select bandwidth of 40 for
+# 10 points per second.
+set_max_bandwidth 40
+# Set up potential window between
+# -0.5 V and 1.5 V, otherwise
+# the max potential would be 1.1 V
+# for low speed mode.
+set_range_minmax da -500m 1500m
+# Set current range to 1 mA.
+set_range ba 1m
+# Enable autoranging
+# between current of 10 uA and 3 mA.
+set_autoranging ba 10u 3m
+# Turn cell on for measurements.
+cell_on
+# send_string returns any text
+# If the first character is a
+# lower case p PalmExec returns
+# the next 3 characters as
+# a process.
+# A process can be e.g. used
+# to differentiate between two
+# of the same measurements with
+# different parameters.
+send_string "pLS1"
+# Equilibrate at -0.5 V for 5 seconds
+# using a CA measurement.
+meas_loop_ca p c -500m 500m 5
+    pck_start
+    pck_add p
+    pck_add c
+    pck_end
+endloop
+# Start LSV measurement from
+# -0.5 V to 1.5 V
+# with steps of 10 mV
+# and a scan rate of 100 mV/s.
+# Send package containing set potential
+# and measured WE current.
+meas_loop_lsv p c -500m 1500m 10m 100m
+    pck_start
+    pck_add p
+    pck_add c
+    pck_end
+endloop
+# Turn off cell when done or
+# aborted.
+on_finished:
+cell_off
+

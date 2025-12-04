@@ -44,7 +44,6 @@ of this modified code are entirely the responsibility of the user, not of David 
 import static android.os.Build.VERSION.SDK_INT;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -55,13 +54,11 @@ import android.content.pm.PackageManager;
 import android.hardware.usb.UsbManager;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
@@ -107,7 +104,7 @@ public class MainActivity extends Activity {
 
     private static final String TAG = "MainActivity";
 
-    private final static String[] scriptFiles = {"EIS.txt", "LSV.txt", "OCP.txt", "SWV.txt"};
+    private final static String[] scriptFiles = {"CV01.txt", "EIS01.txt", "LSV01.txt", "OCP01.txt", "SWV01.txt"};
     private static File fileFolder = null;
     private static File fileResponse = null;
     private boolean folderOk = false;
@@ -161,19 +158,20 @@ public class MainActivity extends Activity {
     private Button btnAbort;
 
 
-    private int nDataPointsReceived = 0;
+    private int nDataPoints = 0;
     private String mVersionResp = "";
     private AppState mAppState;
     private boolean mThreadIsStopped = true;
 
 
-    @SuppressLint({"MissingInflatedId", "ObsoleteSdkInt"})
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
 
         txtResponse = findViewById(R.id.txtResponse);
         txtResponse.setMovementMethod(new ScrollingMovementMethod());
@@ -182,22 +180,28 @@ public class MainActivity extends Activity {
         btnStart = findViewById(R.id.btnStart);
         btnAbort = findViewById(R.id.btnAbort);
 
+        btnConnect.setText(R.string.connect);
+        btnScripts.setText(R.string.script);
+        btnStart.setText(R.string.start);
+        btnAbort.setText(R.string.abort);
+
+
+        btnConnect.setOnClickListener(v -> onClickConnect());
+        btnScripts.setOnClickListener(v -> onClickScripts());
+        btnStart.setOnClickListener(v -> onClickStart());
+        btnAbort.setOnClickListener(v -> onClickAbort());
+
+
         IntentFilter filter = new IntentFilter();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) {
-            filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1) {
-            filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-            registerReceiver(mUsbReceiverAttach, filter);
-        } else {
-            registerReceiver(mUsbReceiverAttach, filter);
-        }
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+        registerReceiver(mUsbReceiverAttach, filter);
 
         try {
             ftD2xxManager = D2xxManager.getInstance(this);
         } catch (D2xxManager.D2xxException ex) {
             Log.e(TAG, "onCreate " + ex);
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);                    // Exit the application if D2xxManager instance is null.
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            // Exit the application if D2xxManager instance is null.
             builder.setMessage("Failed to retrieve an instance of D2xxManager. The application is forced to exit.")
                     .setCancelable(false)
                     .setPositiveButton("OK", (dialog, id) -> MainActivity.this.finish());
@@ -350,7 +354,7 @@ public class MainActivity extends Activity {
 
     /**
      * <Summary>
-     * Copy the standard script files from assets to Download/PSData in the phone
+     * Copy the standard script files from assets to Download/PalmData in the phone
      * This and the next two methods
      * </Summary>
      */
@@ -358,7 +362,7 @@ public class MainActivity extends Activity {
         String state = Environment.getExternalStorageState();
         if (Environment.MEDIA_MOUNTED.equals(state)) {
             fileFolder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() +
-                    "/PSData");
+                    "/PalmData");
             if (!fileFolder.exists()) {
                 if (fileFolder.mkdirs()) {
                     folderOk = true;
@@ -446,11 +450,11 @@ public class MainActivity extends Activity {
      * Enables/disables the buttons and updates the UI
      * </Summary>
      */
-    @SuppressLint("SetTextI18n")
+
     private void updateView() {
         switch (mAppState) {
             case Idle:
-                btnConnect.setText("Connect");
+                btnConnect.setText(R.string.connect);
                 btnConnect.setEnabled(discoverDevice());
                 btnScripts.setEnabled(true);
                 btnStart.setEnabled(false);
@@ -458,7 +462,7 @@ public class MainActivity extends Activity {
                 break;
 
             case Connecting:
-                btnConnect.setText("Connect");
+                btnConnect.setText(R.string.connect);
                 btnConnect.setEnabled(false);
                 btnScripts.setEnabled(false);
                 btnStart.setEnabled(false);
@@ -466,7 +470,7 @@ public class MainActivity extends Activity {
                 break;
 
             case IdleConnected:
-                btnConnect.setText("Disconnect");
+                btnConnect.setText(R.string.disconnect);
                 btnConnect.setEnabled(true);
                 btnScripts.setEnabled(true);
                 btnStart.setEnabled(scriptOk);
@@ -474,7 +478,7 @@ public class MainActivity extends Activity {
                 break;
 
             case ScriptRunning:
-                btnConnect.setText("Disconnect");
+                btnConnect.setText(R.string.disconnect);
                 btnConnect.setEnabled(true);
                 btnScripts.setEnabled(false);
                 btnStart.setEnabled(false);
@@ -574,7 +578,7 @@ public class MainActivity extends Activity {
 
     /**
      * <Summary>
-     * Select a method script from Downloads/PSData
+     * Select a method script from Downloads/PalmData
      * </Summary>
      */
     private void showScriptChooser() {
@@ -596,7 +600,6 @@ public class MainActivity extends Activity {
      * Return the script file uri, open the script and transfer the lines to an array.
      * </Summary>
      */
-    @SuppressLint("SetTextI18n")
     @Override
     protected void onActivityResult(int requestCode, int resultCode,
                                     @Nullable @org.jetbrains.annotations.Nullable Intent data) {
@@ -616,7 +619,7 @@ public class MainActivity extends Activity {
                         j = line.length();
                         line += "\n";
                         txtResponse.append(line);
-                        if (!line.contains("#")) listScript.add(line);
+                        listScript.add(line);
                     }
                     if (j > 0) listScript.add("\n");
                     lineReader.close();
@@ -643,7 +646,7 @@ public class MainActivity extends Activity {
     private boolean sendScript() {
         if (!listScript.isEmpty()) {
             listResponse.clear();
-            listResponse.add("DateTime;Process;Measure;nMeasure;nResponse;Identifier1;Variable1;Identifier2;Variable2;Id3/Status;Var3/Range\n");
+            listResponse.add("DateTime;Process;Measure;nMeasure;nDataPoints;Identifier1;Variable1;Identifier2;Variable2;Id3/Status;Var3/Range\n");
             for (String line : listScript) {
                 writeToDevice(line);
             }
@@ -763,7 +766,7 @@ public class MainActivity extends Activity {
                     Toast.makeText(this, "Script completed", Toast.LENGTH_LONG).show();
                     break;
                 case '*':
-                    txtResponse.append("Measurement completed.\n\n");
+                    txtResponse.append("Measurement stored in downloads/PalmData.\n\n");
                     storeResponse();
                     break;
                 case 'T':
@@ -773,7 +776,7 @@ public class MainActivity extends Activity {
                     break;
                 case 'M':
                     nMeasure++;                             //The measurement number aids in sorting the data.
-                    nDataPointsReceived = 0;                                  //Increments the number of data points if the read line contains the header char 'P
+                    nDataPoints = 0;                                  //Increments the number of data points if the read line contains the header char 'P
                     switch (readLine.substring(1, 5)) {
                         case "0000":
                             strMeasure = "LSV";
@@ -854,7 +857,7 @@ public class MainActivity extends Activity {
                     }
                     break;
                 case 'P':
-                    nDataPointsReceived++;                                  //Increments the number of data points if the read line contains the header char 'P
+                    nDataPoints++;                                  //Increments the number of data points if the read line contains the header char 'P
                     parsePackageLine(readLine);                              //Parses the line read
                     break;
                 case '!':
@@ -899,11 +902,12 @@ public class MainActivity extends Activity {
         String responsePackageLine = packageLine.substring(startingIndex + 1);   //Removes the beginning character 'P'
         startingIndex = 0;
 
-        txtResponse.append(String.format(Locale.getDefault(), "%4d", nDataPointsReceived));
+        txtResponse.append(String.format(Locale.getDefault(), "%4d", nDataPoints));
 
         String testNumber = String.format(Locale.getDefault(), "%1$ 2.1e", 1.1);
-        if (testNumber.contains(".")) listResponse.add(dataDateDot.format(new Date())); else listResponse.add(dataDateComma.format(new Date()));
-        listResponse.add(";" + strProcess + ";" + strMeasure + ";" + nMeasure + ";" + nDataPointsReceived);
+        if (testNumber.contains(".")) listResponse.add(dataDateDot.format(new Date()));
+        else listResponse.add(dataDateComma.format(new Date()));
+        listResponse.add(";" + strProcess + ";" + strMeasure + ";" + nMeasure + ";" + nDataPoints);
 
         variables = responsePackageLine.split(";");                     //The data values are separated by the delimiter ';'
         for (String variable : variables) {
@@ -1104,7 +1108,7 @@ public class MainActivity extends Activity {
 
     /**
      * <summary>
-     * Stores the string array listResponse to a file named Downloads/PSData_YYYY_MM_DD_HH_MM_SS.csv
+     * Stores the string array listResponse to a file named Downloads/Data_YYYY_MM_DD_HH_MM_SS.csv
      * </summary>
      */
     public void storeResponse() {
@@ -1115,7 +1119,7 @@ public class MainActivity extends Activity {
                 String state = Environment.getExternalStorageState();
                 if (Environment.MEDIA_MOUNTED.equals(state)) {
                     fileFolder = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() +
-                            "/PSData");
+                            "/PalmData");
                     if (!fileFolder.exists()) {
                         if (fileFolder.mkdirs()) {
                             folderOk = true;
@@ -1131,7 +1135,7 @@ public class MainActivity extends Activity {
             }
 
             if (folderOk) {
-                String file = "PSData_" + fileDate.format(new Date()) + ".csv";
+                String file = "Data_" + fileDate.format(new Date()) + ".csv";
                 fileResponse = new File(fileFolder, file);
                 storing();
             }
@@ -1153,7 +1157,7 @@ public class MainActivity extends Activity {
                 osw.close();
                 listResponse.clear();
                 fileOk = true;
-                Toast.makeText(this, "One measurement has been stored", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "One measurement is stored in downloads/PalmData", Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
                 Log.w(TAG, "storing " + e);
                 fileOk = false;
@@ -1172,9 +1176,8 @@ public class MainActivity extends Activity {
      * Opens the device on click of connect and sends the version command to verify if the device is EmStat Pico.
      * </Summary>
      *
-     * @param view btnConnect
      */
-    public void onClickConnect(View view) {
+    public void onClickConnect() {
         switch (mAppState) {
             case Idle:
                 try {
@@ -1201,9 +1204,8 @@ public class MainActivity extends Activity {
      * Opens the script file using the file chooser.
      * </Summary>
      *
-     * @param view btnScripts
      */
-    public void onClickScripts(View view) {
+    public void onClickScripts() {
         switch (mAppState) {
             case Idle:
             case IdleConnected:
@@ -1220,9 +1222,8 @@ public class MainActivity extends Activity {
      * Calls the method to abort the MethodSCRIPT.
      * </Summary>
      *
-     * @param view btnAbort
      */
-    public void onClickAbort(View view) {
+    public void onClickAbort() {
         abortScript();
     }
 
@@ -1231,9 +1232,8 @@ public class MainActivity extends Activity {
      * Calls the method to send the MethodSCRIPT.
      * </Summary>
      *
-     * @param view btnStart
      */
-    public void onClickStart(View view) {
+    public void onClickStart() {
         if (sendScript()) {
             setAppState(AppState.ScriptRunning);
         } else {

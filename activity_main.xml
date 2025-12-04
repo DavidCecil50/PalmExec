@@ -1,21 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:fitsSystemWindows="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:ignore="HardcodedText"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/appName"
+        android:layout_width="130dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="19dp"
+        android:layout_marginTop="32dp"
+        android:text="@string/app_name"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.Compat.Notification"
+        android:textSize="18sp" />
+
     <Button
         android:id="@+id/btnConnect"
         android:layout_width="130dp"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/appName"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="19dp"
-        android:onClick="onClickConnect"
-        android:text="Connect"/>
+        android:layout_marginStart="21dp"
+        android:layout_marginTop="72dp" />
 
     <Button
         android:id="@+id/btnStart"
@@ -23,10 +35,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/btnConnect"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="211dp"
-        android:layout_marginTop="-53dp"
-        android:onClick="onClickStart"
-        android:text="Start" />
+        android:layout_marginStart="216dp"
+        android:layout_marginTop="-46dp" />
 
     <Button
         android:id="@+id/btnScripts"
@@ -34,23 +44,18 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/btnConnect"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="10dp"
-        android:layout_toEndOf="@+id/btnConnect"
-        android:onClick="onClickScripts"
-        android:text="Scripts"
-        tools:ignore="HardcodedText" />
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="19dp"
+        android:layout_toEndOf="@+id/btnConnect" />
 
     <Button
         android:id="@+id/btnAbort"
         android:layout_width="130dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/btnStart"
-        android:layout_marginStart="-128dp"
-        android:layout_marginTop="10dp"
-        android:layout_toEndOf="@+id/btnStart"
-        android:onClick="onClickAbort"
-        android:text="Abort" />
+        android:layout_marginStart="-131dp"
+        android:layout_marginTop="14dp"
+        android:layout_toEndOf="@+id/btnStart" />
 
     <TextView
         android:id="@+id/lblResponse"
@@ -58,9 +63,9 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/btnAbort"
         android:layout_alignParentStart="true"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="37dp"
-        android:text="Response"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="15dp"
+        android:text="@string/response"
         android:textAlignment="center"
         android:textAppearance="@style/TextAppearance.Compat.Notification"
         android:textSize="18sp" />
@@ -78,8 +83,8 @@
         android:layout_marginTop="12dp"
         android:layout_marginEnd="16dp"
         android:layout_marginRight="0dp"
-        android:layout_marginBottom="59dp"
+        android:layout_marginBottom="50dp"
         android:fontFamily="monospace"
-        android:gravity="bottom"/>
+        android:gravity="bottom" />
 
 </RelativeLayout>

@@ -2,5 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools"
     tools:keep="@xml/device_filter">
     <!-- 0x0403 / 0x6015: FTDI FT231X -->
-    <usb-device vendor-id="1027" product-id="24597" />
+    <usb-device
+        vendor-id="1027"
+        product-id="24597" />
 </resources>
