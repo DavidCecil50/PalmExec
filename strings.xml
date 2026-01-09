@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PalmExec</string>
+    <string name="app_name">PalmExec03</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
     <string name="response">Response</string>

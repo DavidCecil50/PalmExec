@@ -57,11 +57,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -91,8 +91,6 @@ import java.util.Objects;
 
 public class MainActivity extends Activity {
 
-    static final ArrayList<String> mReadings = new ArrayList<>();
-
     private static final int PERMIT_STORAGE = 1;
 
     private enum AppState {
@@ -107,18 +105,22 @@ public class MainActivity extends Activity {
     private final static String[] scriptFiles = {"CV01.txt", "EIS01.txt", "LSV01.txt", "OCP01.txt", "SWV01.txt"};
     private static File fileFolder = null;
     private static File fileResponse = null;
+    private static File filePeak = null;
     private boolean folderOk = false;
     private boolean fileOk = false;
     private boolean scriptOk = false;
     private final static SimpleDateFormat fileDate = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US);
-    private final static SimpleDateFormat dataDateComma = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss,sss", Locale.US);
-    private final static SimpleDateFormat dataDateDot = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.sss", Locale.US);
+    private static SimpleDateFormat dataDate;
     private final ArrayList<String> listResponse = new ArrayList<>();
+    private final ArrayList<String> listPeak = new ArrayList<>();
     private final ArrayList<String> listScript = new ArrayList<>();
+    private ArrayList<String> listDisplay = new ArrayList<>();
     private static String strProcess = "NaN";
     private static int nMeasure = 0;
     private static String strMeasure = "NaN";
     private static int nLoop = 0;
+    private static final double[] currents = new double[5];
+    private static final double[] potentials = new double[5];
 
     private D2xxManager ftD2xxManager = null;
     private static final String CMD_VERSION_STRING = "t\n";
@@ -151,11 +153,11 @@ public class MainActivity extends Activity {
     private final Handler mHandler = new Handler();
     private FT_Device ftDevice = null;
 
-    private TextView txtResponse;
     private Button btnConnect;
     private Button btnScripts;
     private Button btnStart;
     private Button btnAbort;
+    private ListView list = null;
 
 
     private int nDataPoints = 0;
@@ -173,8 +175,8 @@ public class MainActivity extends Activity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 
-        txtResponse = findViewById(R.id.txtResponse);
-        txtResponse.setMovementMethod(new ScrollingMovementMethod());
+        list = findViewById(R.id.listMeasure);
+
         btnConnect = findViewById(R.id.btnConnect);
         btnScripts = findViewById(R.id.btnScripts);
         btnStart = findViewById(R.id.btnStart);
@@ -191,6 +193,11 @@ public class MainActivity extends Activity {
         btnStart.setOnClickListener(v -> onClickStart());
         btnAbort.setOnClickListener(v -> onClickAbort());
 
+        String testNumber = String.format(Locale.getDefault(), "%1$ 2.1e", 1.1);
+        if (testNumber.contains("."))
+            dataDate = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.SSS", Locale.US);
+        else
+            dataDate = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss,SSS", Locale.US);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
@@ -617,10 +624,11 @@ public class MainActivity extends Activity {
                     // read every line of the file into the line-variable, one line at the time
                     while (( line = lineReader.readLine() ) != null) {
                         j = line.length();
+                        updateResponse(line);
                         line += "\n";
-                        txtResponse.append(line);
                         listScript.add(line);
                     }
+                    updateResponse("");
                     if (j > 0) listScript.add("\n");
                     lineReader.close();
                     chapter.close();
@@ -646,7 +654,9 @@ public class MainActivity extends Activity {
     private boolean sendScript() {
         if (!listScript.isEmpty()) {
             listResponse.clear();
-            listResponse.add("DateTime;Process;Measure;nMeasure;nDataPoints;Identifier1;Variable1;Identifier2;Variable2;Id3/Status;Var3/Range\n");
+            listResponse.add("DateTime;Process;Measure;nMeasure;nDataPoints;Identifier1;Variable1;Identifier2;Variable2;Id3Status;Var3Range\n");
+            listPeak.clear();
+            listPeak.add("DateTime;Process;Measure;nMeasure;nDataPoints;Potentials;Currents\n");
             for (String line : listScript) {
                 writeToDevice(line);
             }
@@ -766,8 +776,15 @@ public class MainActivity extends Activity {
                     Toast.makeText(this, "Script completed", Toast.LENGTH_LONG).show();
                     break;
                 case '*':
-                    txtResponse.append("Measurement stored in downloads/PalmData.\n\n");
+                    updateResponse("Measurement stored in downloads/PalmData.");
                     storeResponse();
+                    if (strMeasure.equals("LSV") || strMeasure.equals("CLV")) {
+                        currents[0] = 0;
+                        currents[1] = 0;
+                        currents[2] = 0;
+                        currents[3] = 0;
+                        currents[4] = 0;
+                    }
                     break;
                 case 'T':
                     if (readLine.charAt(1) == 'p') {            //if the second character in a comment is "p" then this is the start of a process.
@@ -775,84 +792,84 @@ public class MainActivity extends Activity {
                     }                                           //In this way process comments can help with the later analysis of the response from the Sensit
                     break;
                 case 'M':
-                    nMeasure++;                             //The measurement number aids in sorting the data.
-                    nDataPoints = 0;                                  //Increments the number of data points if the read line contains the header char 'P
+                    nMeasure++;                                  //The measurement number aids in sorting the data.
+                    nDataPoints = 0;                             //Increments the number of data points if the read line contains the header char 'P
                     switch (readLine.substring(1, 5)) {
                         case "0000":
                             strMeasure = "LSV";
-                            txtResponse.append("Idx    V       A      Status  A-range\n");
+                            updateResponse("Idx    V       A      Status  A-range");
                             break;
                         case "0001":
                             strMeasure = "DPV";
-                            txtResponse.append("Idx    V       A      Status  A-range\n");
+                            updateResponse("Idx    V       A      Status  A-range");
                             break;
                         case "0002":
                             strMeasure = "SWV";
-                            txtResponse.append("Idx    V       A      Status  A-range\n");
+                            updateResponse("Idx    V       A      Status  A-range");
                             break;
                         case "0003":
                             strMeasure = "NPV";
-                            txtResponse.append("Idx    V       A      Status  A-range\n");
+                            updateResponse("Idx    V       A      Status  A-range");
                             break;
                         case "0004":
                             strMeasure = "ACV";
-                            txtResponse.append("Idx   dc-V    ac-A\n");
+                            updateResponse("Idx   dc-V    ac-A");
                             break;
                         case "0005":
                             strMeasure = "CLV";
-                            txtResponse.append("Idx    V       A      Status  A-range\n");
+                            updateResponse("Idx    V       A      Status  A-range");
                             break;
                         case "0007":
                             strMeasure = "CHA";
-                            txtResponse.append("Idx     V       A     Status  A-range\n");
+                            updateResponse("Idx     V       A     Status  A-range");
                             break;
                         case "0008":
                             strMeasure = "PAD";
-                            txtResponse.append("Idx\n");
+                            updateResponse("Idx");
                             break;
                         case "0009":
                             strMeasure = "FCA";
-                            txtResponse.append("Idx\n");
+                            updateResponse("Idx");
                             break;
                         case "000A":
                             strMeasure = "CHP";
-                            txtResponse.append("Idx      A       V\n");
+                            updateResponse("Idx      A       V");
                             break;
                         case "000B":
                             strMeasure = "OCP";
-                            txtResponse.append("Idx    V\n");
+                            updateResponse("Idx    V");
                             break;
                         case "000D":
                             strMeasure = "EIS";
-                            txtResponse.append("Idx    Hz     realOhm  imagOhm\n");
+                            updateResponse("Idx    Hz     realOhm  imagOhm");
                             break;
                         case "000E":
                             strMeasure = "GES";
-                            txtResponse.append("Idx    Hz     realOhm  imagOhm\n");
+                            updateResponse("Idx    Hz     realOhm  imagOhm");
                             break;
                         case "000F":
                             strMeasure = "LSP";
-                            txtResponse.append("Idx    A       V\n");
+                            updateResponse("Idx    A       V");
                             break;
                         case "0010":
                             strMeasure = "FCP";
-                            txtResponse.append("Idx\n");
+                            updateResponse("Idx");
                             break;
                         case "0011":
                             strMeasure = "CAX";
-                            txtResponse.append("Idx\n");
+                            updateResponse("Idx");
                             break;
                         case "0012":
                             strMeasure = "CPX";
-                            txtResponse.append("Idx\n");
+                            updateResponse("Idx");
                             break;
                         case "0013":
                             strMeasure = "OCX";
-                            txtResponse.append("Idx\n");
+                            updateResponse("Idx");
                             break;
                         default:
                             strMeasure = "NaN";
-                            txtResponse.append("Idx\n");
+                            updateResponse("Idx");
                             break;
                     }
                     break;
@@ -861,27 +878,26 @@ public class MainActivity extends Activity {
                     parsePackageLine(readLine);                              //Parses the line read
                     break;
                 case '!':
-                    txtResponse.append("Error " + readLine + "\n");
-                    listResponse.add("Error " + readLine + "\n");
-                    abortScript();
+                    updateResponse("Error " + readLine);
+                    listResponse.add(dataDate.format(new Date()) + " Error " + readLine + "\n");
+                    storeResponse();
                     break;
                 case 'Z':
-                    txtResponse.append("Measurement aborted.\n");
-                    listResponse.add("Measurement aborted.\n");
+                    updateResponse("Measurement aborted.");
+                    listResponse.add(dataDate.format(new Date()) + " Measurement aborted.\n");
+                    storeResponse();
                     break;
                 case 'L':
                     nLoop++;
-                    txtResponse.append("Loop" + nLoop + "\n");
+                    Toast.makeText(this, "Loop " + nLoop + " started", Toast.LENGTH_SHORT).show();
                     break;
                 case '+':
+                    Toast.makeText(this, "Loop " + nLoop + " completed", Toast.LENGTH_SHORT).show();
                     nLoop--;
-                    txtResponse.append("Loop" + nLoop + "\n");
                     break;
                 default:
                     break;
             }
-        } else {
-            txtResponse.append("\n");
         }
     }
 
@@ -896,49 +912,90 @@ public class MainActivity extends Activity {
         String[] variables;
         String variableIdentifier;
         String dataValue;
+        double dataValueWithPrefix;
 
-
-        int startingIndex = packageLine.indexOf('P');                            //Identifies the beginning of the measurement data package
-        String responsePackageLine = packageLine.substring(startingIndex + 1);   //Removes the beginning character 'P'
+        int startingIndex = packageLine.indexOf('P');                                       //Identifies the beginning of the measurement data package
+        String responsePackageLine = packageLine.substring(startingIndex + 1);    //Removes the beginning character 'P'
         startingIndex = 0;
 
-        txtResponse.append(String.format(Locale.getDefault(), "%4d", nDataPoints));
+        StringBuilder display = new StringBuilder(String.format(Locale.getDefault(), "%4d", nDataPoints));
+        listResponse.add(dataDate.format(new Date()) + ";" + strProcess + ";" + strMeasure + ";" + nMeasure + ";" + nDataPoints);
 
-        String testNumber = String.format(Locale.getDefault(), "%1$ 2.1e", 1.1);
-        if (testNumber.contains(".")) listResponse.add(dataDateDot.format(new Date()));
-        else listResponse.add(dataDateComma.format(new Date()));
-        listResponse.add(";" + strProcess + ";" + strMeasure + ";" + nMeasure + ";" + nDataPoints);
 
-        variables = responsePackageLine.split(";");                     //The data values are separated by the delimiter ';'
+        variables = responsePackageLine.split(";");                       //The data values are separated by the delimiter ';'
         for (String variable : variables) {
             variableIdentifier = variable.substring(startingIndex, 2);          //The String (2 characters) that identifies the measurement variable
             dataValue = variable.substring(startingIndex + 2, startingIndex + 2 + PACKAGE_DATA_VALUE_LENGTH);
-            double dataValueWithPrefix = parseParamValues(dataValue);           //Parses the variable values and returns the actual values with their corresponding SI unit prefixes
-            switch (variableIdentifier) {
-                case "da":                                                      //Measured potential
-                case "ba":                                                      //Measured current
-                case "eb":                                                      //Time
-                case "dc":                                                      //Set value for frequency
-                case "cb":                                                      //Measured impedance
-                case "cc":                                                      //Measured real part of complex impedance
-                case "cd":                                                      //Measured imaginary part of complex impedance
-                default:
-                    mReadings.add(variableIdentifier + ";" + String.format(Locale.getDefault(), "%1$-1.5e ", dataValueWithPrefix));
-                    break;
+            dataValueWithPrefix = parseParamValues(dataValue);                  //Parses the variable values and returns the actual values with their corresponding SI unit prefixes
+            display.append(" ").append(String.format(Locale.getDefault(), "%1$ 2.1e", dataValueWithPrefix));
+            listResponse.add(";" + variableIdentifier + ";" + String.format(Locale.getDefault(), "%1$1.6e", dataValueWithPrefix) );
+
+            if (strMeasure.equals("LSV") || strMeasure.equals("CLV")) {
+                if (variableIdentifier.equals("da")) potentials[4] = dataValueWithPrefix;
+                if (variableIdentifier.equals("ba")) currents[4] = dataValueWithPrefix;
             }
-            txtResponse.append(" " + String.format(Locale.getDefault(), "%1$ 2.1e", dataValueWithPrefix));
-            listResponse.add(";" + variableIdentifier + ";" + String.format(Locale.getDefault(), "%1$1.6e", dataValueWithPrefix));
-            if (variableIdentifier.equals("ba")) {
-                if (variable.length() > 10 && variable.charAt(10) == ',') {
-                    parseMetaDataValues(variable.substring(11));                    //Parses the metadata values in the variable, if any
-                } else {
-                    listResponse.add(";;");
+
+            //If the variable is current this parses the metadata values.
+            //The first character in each meta data value specifies the type of data.
+            //1 - 1 char hex mask holding the status (0 = OK, 2 = overload, 4 = underload, 8 = overload warning (80% of max))
+            //2 - 2 chars hex holding the current range index. First bit high (0x80) indicates a high speed mode cr.
+            if (variableIdentifier.equals("ba") && variable.length() > 10 && variable.charAt(10) == ',') {
+                String[] metaDataValues;
+                metaDataValues = variable.split(",");
+                for (String metaData : metaDataValues) {
+                    switch (metaData.charAt(0)) {
+                        case '1':
+                            String status = getReadingStatus(metaData);
+                            display.append(" ").append(String.format("%-5s", status));
+                            listResponse.add(";" + status);
+                            break;
+                        case '2':
+                            String range = getCurrentRange(metaData);
+                            display.append(" ").append(range);
+                            listResponse.add(";" + range);
+                            break;
+                        default:
+                            break;
+                    }
                 }
+
             }
         }
-        txtResponse.append("\n");
-        listResponse.add("\n");
+        updateResponse(display.toString());
+        listResponse.add("\n"); //This completes one line of data stored on the phone
+
+        //If the measurement is LSV or CLV find the current peak.
+        if (strMeasure.equals("LSV") || strMeasure.equals("CLV")) {
+            if (currents[0] != 0) {
+                double slope1 = currents[1] - currents[0];
+                double slope2 = currents[2] - currents[1];
+                double slope3 = currents[3] - currents[2];
+                double slope4 = currents[4] - currents[3];
+                if (potentials[0] > potentials[4]) {
+                    if (slope1 < 0 && slope2 < 0 && slope3 > 0 && slope4 > 0) {
+                        listPeak.add(( dataDate.format(new Date()) + ";" + strProcess + ";" + strMeasure + ";" + nMeasure + ";" + ( nDataPoints - 2 ) + ";" +
+                                String.format(Locale.getDefault(), "%1$1.6e", potentials[2]) + ";" +
+                                String.format(Locale.getDefault(), "%1$1.6e", currents[2]) + "\n" ));
+                    }
+                } else {
+                    if (slope1 > 0 && slope2 > 0 && slope3 < 0 && slope4 < 0) {
+                        listPeak.add(( dataDate.format(new Date()) + ";" + strProcess + ";" + strMeasure + ";" + nMeasure + ";" + ( nDataPoints - 2 ) + ";" +
+                                String.format(Locale.getDefault(), "%1$1.6e", potentials[2]) + ";" +
+                                String.format(Locale.getDefault(), "%1$1.6e", currents[2]) + "\n" ));
+                    }
+                }
+            }
+            potentials[0] = potentials[1];
+            potentials[1] = potentials[2];
+            potentials[2] = potentials[3];
+            potentials[3] = potentials[4];
+            currents[0] = currents[1];
+            currents[1] = currents[2];
+            currents[2] = currents[3];
+            currents[3] = currents[4];
+        }
     }
+
 
     /**
      * <Summary>
@@ -963,147 +1020,112 @@ public class MainActivity extends Activity {
         }
     }
 
-    /**
-     * <Summary>
-     * Parses the metadata values of the variable, if any.
-     * The first character in each meta data value specifies the type of data.
-     * 1 - 1 char hex mask holding the status (0 = OK, 2 = overload, 4 = underload, 8 = overload warning (80% of max))
-     * 2 - 2 chars hex holding the current range index. First bit high (0x80) indicates a high speed mode cr.
-     * 4 - 1 char hex holding the noise value
-     * </Summary>
-     *
-     * @param packageMetaData The metadata values from the package to be parsed.
-     */
-    private void parseMetaDataValues(String packageMetaData) {
-        String[] metaDataValues;
-        metaDataValues = packageMetaData.split(",");
-        for (String metaData : metaDataValues) {
-            switch (metaData.charAt(0)) {
-                case '1':
-                    getReadingStatusFromPackage(metaData);
-                    break;
-                case '2':
-                    getCurrentRangeFromPackage(metaData);
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
 
     /**
      * <Summary>
      * Parses the reading status from the package. 1 char hex mask holding the status (0 = OK, 2 = overload, 4 = underload, 8 = overload warning (80% of max))
      * </Summary>
      *
-     * @param metaDatastatus The status metadata to be parsed
+     * @param metaStatus The status metadata to be parsed
+     * @return the status as a string
      */
-    private void getReadingStatusFromPackage(String metaDatastatus) {
-        String strStatus;
-        switch (metaDatastatus.charAt(1)) {
+    private String getReadingStatus(String metaStatus) {
+        switch (metaStatus.charAt(1)) {
             case '0':
-                strStatus = "Ok";
-                break;
+                return "Ok";
             case '1':
-                strStatus = "Tout";
-                break;
+                return "Tout";
             case '2':
-                strStatus = "Over";
-                break;
+                return "Over";
             case '4':
-                strStatus = "Under";
-                break;
+                return "Under";
             case '8':
-                strStatus = ">80%";
-                break;
+                return ">80%";
             default:
-                strStatus = "NaN";
-                break;
+                return "NaN";
         }
-        txtResponse.append(" " + String.format("%-5s", strStatus));
-        listResponse.add(";" + strStatus);
     }
 
     /**
      * <summary>
      * Displays the string corresponding to the input cr int
      * </summary>
+     *
+     * @param metaRange The status metadata to be parsed
+     * @return the range as a string
      */
-    private void getCurrentRangeFromPackage(String metaRange) {
-        String strRange;
+    private String getCurrentRange(String metaRange) {
         switch (( Integer.parseInt(metaRange.substring(1, 3), 16) )) {
             case 1:
-                strRange = "100nA";
-                break;
+                return "100nA";
             case 2:
-                strRange = "2uA";
-                break;
+                return "2uA";
             case 3:
-                strRange = "4uA";
-                break;
+                return "4uA";
             case 4:
-                strRange = "8uA";
-                break;
+                return "8uA";
             case 5:
-                strRange = "16uA";
-                break;
+                return "16uA";
             case 6:
-                strRange = "32uA";
-                break;
+                return "32uA";
             case 7:
-                strRange = "63uA";
-                break;
+                return "63uA";
             case 8:
-                strRange = "125uA";
-                break;
+                return "125uA";
             case 9:
-                strRange = "250uA";
-                break;
+                return "250uA";
             case 10:
-                strRange = "500uA";
-                break;
+                return "500uA";
             case 11:
-                strRange = "1mA";
-                break;
+                return "1mA";
             case 128:
-                strRange = "5mA";
-                break;
+                return "5mA";
             case 129:
-                strRange = "100nAhs";
-                break;
+                return "100nAhs";
             case 130:
-                strRange = "1uAhs";
-                break;
+                return "1uAhs";
             case 131:
-                strRange = "6uAhs";
-                break;
+                return "6uAhs";
             case 132:
-                strRange = "13uAhs";
-                break;
+                return "13uAhs";
             case 133:
-                strRange = "25uAhs";
-                break;
+                return "25uAhs";
             case 134:
-                strRange = "50uAhs";
-                break;
+                return "50uAhs";
             case 135:
-                strRange = "100uAhs";
-                break;
+                return "100uAhs";
             case 136:
-                strRange = "200uAhs";
-                break;
+                return "200uAhs";
             case 137:
-                strRange = "1mAhs";
-                break;
+                return "1mAhs";
             case 138:
-                strRange = "5mAhs";
-                break;
+                return "5mAhs";
             default:
-                strRange = metaRange.substring(1, 3);
-                break;
+                return metaRange.substring(1, 3);
         }
-        txtResponse.append(" " + strRange);
-        listResponse.add(";" + strRange);
+    }
+
+    /**
+     * <Summary>
+     * Adds lines to the response list in the display and
+     * limits the number of lines to 1024
+     * </Summary>
+     *
+     * @param str the line to be added
+     */
+    private void updateResponse(String str) {
+        listDisplay.add(str);
+        int i = listDisplay.size();
+        if (i > 1536) {
+            listDisplay = new ArrayList<>(listDisplay.subList(i - 1024, i));
+        }
+        try {
+            ArrayAdapter<String> listAdapter = new ArrayAdapter<>(this, R.layout.list_text_left, listDisplay);
+            list.setAdapter(listAdapter);
+            list.setSelection(listAdapter.getCount() - 1);
+        } catch (Exception e) {
+            Log.e(TAG, "refreshing" + e);
+        }
     }
 
     /**
@@ -1137,6 +1159,8 @@ public class MainActivity extends Activity {
             if (folderOk) {
                 String file = "Data_" + fileDate.format(new Date()) + ".csv";
                 fileResponse = new File(fileFolder, file);
+                file = "Peak_" + fileDate.format(new Date()) + ".csv";
+                filePeak = new File(fileFolder, file);
                 storing();
             }
         }
@@ -1157,7 +1181,6 @@ public class MainActivity extends Activity {
                 osw.close();
                 listResponse.clear();
                 fileOk = true;
-                Toast.makeText(this, "One measurement is stored in downloads/PalmData", Toast.LENGTH_SHORT).show();
             } catch (Exception e) {
                 Log.w(TAG, "storing " + e);
                 fileOk = false;
@@ -1166,6 +1189,20 @@ public class MainActivity extends Activity {
             }
         } else {
             Toast.makeText(this, "No more data to store", Toast.LENGTH_SHORT).show();
+        }
+
+        if (!listPeak.isEmpty()) {
+            try {
+                FileOutputStream out = new FileOutputStream(filePeak, true);
+                OutputStreamWriter osw = new OutputStreamWriter(out);
+                for (String str : listPeak) osw.write(str);
+                osw.flush();
+                osw.close();
+                listPeak.clear();
+            } catch (Exception e) {
+                Log.w(TAG, "storing " + e);
+                abortScript();
+            }
         }
     }
 
@@ -1243,5 +1280,3 @@ public class MainActivity extends Activity {
 //endregion
 
 }
-
-
