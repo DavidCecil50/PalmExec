@@ -1,0 +1,51 @@
+e
+var c
+var p
+var i
+# Select channel 0.
+set_pgstat_chan 0
+# Low speed mode is fast enough.
+set_pgstat_mode 2
+# Select bandwidth of 40 for 10
+# points per second.
+set_max_bandwidth 40
+set_range_minmax da -500m 500m
+# Set current range to 1 mA.
+set_range ba 1m
+# Enable autoranging
+# between currents
+# of 10 uA and 3mA.
+set_autoranging ba 10u 3m
+# Turn cell on for measurements.
+cell_on
+# send_string returns any text
+# If the first character is a
+# lower case p PalmExec returns
+# the next 3 characters as
+# a process.
+# A process can be e.g. used
+# to differentiate between two
+# of the same measurements with
+# different parameters.
+send_string "pCV1"
+# Repeat CV 4 times
+store_var i 0i aa
+loop i < 4i
+    # Start CV measurement from 0.5 V
+    # to -0.5 V, with steps of 10 mV
+    # and a scan rate of 100 mV/s.
+    # Return a package containing
+    # set potential and
+    # measured current.
+    meas_loop_cv p c 0 500m -500m 10m 100m
+        pck_start
+        pck_add p
+        pck_add c
+        pck_end
+    endloop
+    add_var i 1i
+endloop
+# Turn off cell when done or aborted.
+on_finished:
+cell_off
+

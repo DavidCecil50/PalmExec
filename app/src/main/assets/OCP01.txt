@@ -1,0 +1,37 @@
+e
+var p
+# Select channel 0.
+set_pgstat_chan 0
+# Low speed mode is
+# fast enough.
+set_pgstat_mode 2
+# Select bandwidth of 40 for
+# 10 points per second.
+set_max_bandwidth 40
+# Cell off for OCV
+cell_off
+# send_string returns any text
+# If the first character is a
+# lower case p PalmExec returns
+# the next 3 characters as
+# a process.
+# A process can be e.g. used
+# to differentiate between two
+# of the same measurements with
+# different parameters.
+send_string "pOC1"
+# Measure the potential
+# at second intervals
+# for 10 seconds
+# Return a packet with
+# the measured potential
+meas_loop_ocp p 1000m 10
+    pck_start
+    pck_add p
+    pck_end
+endloop
+# Turn off cell when done or
+# aborted.
+on_finished:
+cell_off
+

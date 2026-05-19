@@ -1,0 +1,57 @@
+e
+var c
+var p
+var f
+var g
+set_pgstat_chan 0
+set_pgstat_mode 2
+# Set maximum required bandwidth
+# based on frequency * 4.
+# However, since SWV measures
+# 2 datapoints,
+# we have to multiply the
+# bandwidth by 2 as well.
+set_max_bandwidth 80
+# Set potential window.
+# The max expected potential
+# for SWV is EEnd + EAmp * 2 - EStep.
+# This measurement would also work
+# without this command since it
+# stays within the default potential
+# window of -1.1 V to 1.1 V.
+set_range_minmax da -500m 690m
+# Set current range for a maximum
+# expected current of 2 uA.
+set_range ba 2u
+# Disable autoranging.
+set_autoranging ba 2u 2u
+# Turn cell on for measurement.
+cell_on
+# send_string returns any text
+# If the first character is a
+# lower case p PalmExec returns
+# the next 3 characters as
+# a process.
+# A process can be used e.g.
+# to differentiate between two
+# of the same measurements with
+# different parameters.
+send_string "pSW1"
+# Perform a potential scan from -500 mV
+# to 500 mV with steps of 10 mV at a
+# frequency of 10 Hz.
+# At every step a pulse of 2 * 15 mV
+# is applied for 50 ms (1/Frequency/2).
+# Record the set potential and the
+# forward current - reverse current.
+meas_loop_swv p c f g -500m 500m 10m 15m 10
+     pck_start
+     pck_add p
+     pck_add c
+     pck_end
+endloop
+# Turn off cell when done or
+# aborted.
+on_finished:
+cell_off
+
