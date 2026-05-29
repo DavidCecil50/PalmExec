@@ -1,6 +1,6 @@
 PalmExec works with the Palmsens BV Sensit Smart. The Sensit Smart unit performs many electrochemical methods such as cyclic voltammetry. PalmExec sends instructions to the Sensit Smart unit and receives measurement data from the unit.  The data such as voltage and current are saved on the phone/tablet and can later be downloaded to and analyzed on a PC. 
 
-PalmExec reads and executes MethodSCRIPTs. Methodscripts give complete control of the Sensit Smart. They are texts that are simple to edit prior to running PalmExec. Scripts permit the sequencing of many electrochemical methods. Once started scripts can run for minutes, hours or days. There is much more on scripts for the Sensit Smart in https://www.palmsens.com/app/uploads/2025/10/MethodSCRIPT-v1_8.pdf under the heading EMStat Pico.
+PalmExec reads and executes MethodSCRIPTs. MethodSCRIPTs give complete control of the Sensit Smart. They are texts that are simple to edit prior to running PalmExec. Scripts permit the sequencing of many electrochemical methods. Once started scripts can run for minutes, hours or days. There is much more on scripts for the Sensit Smart in https://www.palmsens.com/app/uploads/2025/10/MethodSCRIPT-v1_8.pdf under the heading EMStat Pico.
  
 Sample scripts for cyclic voltammetry, linear sweep voltammetry with chronoamperometry, impedance spectroscopy, open circuit potentiometry and square wave voltammetry are included with PalmExec.
 
