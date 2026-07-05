@@ -3,33 +3,30 @@ plugins {
 }
 
 android {
-    namespace 'com.obdzero.palmexec4'
+    namespace = 'com.obdzero.palmexec'
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId "com.obdzero.palmexec4"
-        minSdk 26
-        targetSdk 36
-        versionCode 12
-        versionName "04"
+        applicationId = "com.obdzero.palmexec"
+        minSdk = 26
+        targetSdk = 36
+        versionCode = 12
+        versionName = "04"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
-    }
-    buildFeatures {
-        viewBinding true
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 }
 

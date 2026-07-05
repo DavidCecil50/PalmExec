@@ -1,9 +1,24 @@
 <resources>
-    <string name="app_name">PalmExec03</string>
+    <string name="app_name">PalmExec</string>
+    <string name="version_name">PalmExec04</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
-    <string name="response">Response</string>
     <string name="script">Scripts</string>
     <string name="start">Start</string>
     <string name="abort">Abort</string>
+    <string name="run">Start Control</string>
+    <string name="stop">Stop Control</string>
+    <string name="process">Process:</string>
+    <string name="variable">Variable:</string>
+    <string name="turn_on">Turn on:</string>
+    <string name="turn_off">Turn off:</string>
+    <string name="control">Control</string>
+    <string name="present">Present</string>
+    <string name="measurement">Measurement:</string>
+    <string name="ip">Device Ip</string>
+    <string name="device_status">Device Status</string>
+    <string name="test_device_connection">Update/Check Device</string>
+    <string name="on_parameter_less_than_off">The on parameter must be less than the off parameter</string>
+    <string name="on_parameter_greater_than_off">The on parameter must be greater than the off parameter</string>
+    <string name="error">Error</string>
 </resources>

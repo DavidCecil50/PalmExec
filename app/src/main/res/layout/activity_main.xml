@@ -6,85 +6,81 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/btnConnect"
+    <TextView
+        android:id="@+id/lbl_appname"
         android:layout_width="130dp"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_marginStart="21dp"
-        android:layout_marginTop="36dp" />
+        android:layout_marginTop="28dp"
+        android:textAlignment="center"
+        android:textColor="#000000"
+        android:textSize="18sp"/>
 
     <Button
-        android:id="@+id/btnStart"
+        android:id="@+id/btn_connect"
+        android:layout_width="130dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/lbl_appname"
+        android:layout_marginStart="21dp"
+        android:layout_marginTop="15dp"
+        android:textColor="#000000"
+        tools:ignore="SpeakableTextPresentCheck"/>
+
+    <Button
+        android:id="@+id/btn_start"
         android:layout_width="130dp"
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_marginStart="216dp"
-        android:layout_marginTop="36dp" />
+        android:layout_marginTop="15dp"
+        android:textColor="#000000"
+        tools:ignore="SpeakableTextPresentCheck" />
 
     <Button
-        android:id="@+id/btnScripts"
+        android:id="@+id/btn_scripts"
         android:layout_width="130dp"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/btnConnect"
+        android:layout_below="@+id/btn_connect"
         android:layout_alignParentStart="true"
         android:layout_marginStart="21dp"
-        android:layout_marginTop="19dp"
-        android:layout_toEndOf="@+id/btnConnect" />
+        android:layout_marginTop="15dp"
+        android:textColor="#000000"
+        tools:ignore="SpeakableTextPresentCheck"/>
 
     <Button
-        android:id="@+id/btnAbort"
+        android:id="@+id/btn_control"
         android:layout_width="130dp"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/btnStart"
+        android:layout_below="@+id/btn_start"
         android:layout_alignParentStart="true"
         android:layout_marginStart="216dp"
-        android:layout_marginTop="19dp"
-        android:layout_toEndOf="@+id/btnStart" />
+        android:layout_marginTop="15dp"
+        android:textColor="#000000"
+        tools:ignore="SpeakableTextPresentCheck" />
 
-    <TextView
-        android:id="@+id/lblResponse"
+    <Button
+        android:id="@+id/btn_abort"
         android:layout_width="130dp"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/btnAbort"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="21dp"
-        android:layout_marginTop="19dp"
-        android:text="@string/response"
-        android:textAlignment="center"
-        android:textAppearance="@style/TextAppearance.Compat.Notification"
-        android:textSize="18sp" />
-
-    <TextView
-        android:id="@+id/appName"
-        android:layout_width="130dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/btnAbort"
+        android:layout_below="@+id/btn_control"
         android:layout_alignParentStart="true"
         android:layout_marginStart="216dp"
-        android:layout_marginTop="19dp"
-        android:text="@string/app_name"
-        android:textAlignment="center"
-        android:textAppearance="@style/TextAppearance.Compat.Notification"
-        android:textSize="18sp" />
+        android:layout_marginTop="15dp"
+        android:textColor="#000000"
+        tools:ignore="SpeakableTextPresentCheck"/>
 
     <ListView
-        android:id="@+id/listMeasure"
-        android:layout_width="584dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/lblResponse"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="0dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="0dp"
-        android:layout_marginBottom="50dp"
+        android:id="@+id/list_measure"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/btn_abort"
+        android:layout_marginTop="15dp"
         android:fontFamily="monospace"
-        android:gravity="bottom" />
+        android:textColor="#000000"
+        android:gravity="bottom"/>
 
 </RelativeLayout>

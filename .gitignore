@@ -1,6 +1,13 @@
 # Gradle files
 .gradle/
+.idea/
+.tmp/
+android/
 build/
+caches/
+daemon/
+native/
+wrapper/
 
 # Local configuration file (sdk path, etc)
 local.properties
