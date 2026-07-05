@@ -6,6 +6,12 @@ Sample scripts for cyclic voltammetry, linear sweep voltammetry with chronoamper
 
 The app saves data in semicolon separated text files, either in the phone’s internal RAM or on an SD Card depending on how the phone/tablet is set up.
 
+In Version 04 a dialog has been added in which the a measurement to be controlled can be specified along with parameters for on off control. PalmExec sends http commands via the local network to a switch. These commands are
+http://[Switch Ip Address]/rpc/Switch.Set?id=0&on=true to turn the switch on
+http://[Switch Ip Address]/rpc/Switch.Set?id=0&on=false to turn the switch off
+http://[Switch Ip Address]/rpc/Switch.GetStatus?id=0 to get the status of the switch
+The control dialog has been tested with sucsees on a Shelly gen3 switch from 
+
 The simple java code for PalmExec is on GitHub https://github.com/DavidCecil50/PalmExec This code can be modified for measuring specific compounds in real time. A phone and Sensit Smart can become a standalone instrument. 
 
 The original code for PalmExec is found on GitHub at https://github.com/PalmSens/MethodSCRIPT_Examples Modifications in PalmExec include a file picker, data storage and extended handling of script codes.
