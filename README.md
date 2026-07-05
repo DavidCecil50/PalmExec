@@ -8,11 +8,11 @@ The app saves data in semicolon separated text files, either in the phone’s in
 
 In Version 04 a dialog has been added in which the a measurement to be controlled can be specified along with parameters for on off control. PalmExec sends http commands via the local network to a switch. These commands are
 
-http://[Switch Ip Address]/rpc/Switch.Set?id=0&on=true         to turn the switch on
+"http://[Switch Ip Address]/rpc/Switch.Set?id=0&on=true"         to turn the switch on
 
-http://[Switch Ip Address]/rpc/Switch.Set?id=0&on=false        to turn the switch off
+"http://[Switch Ip Address]/rpc/Switch.Set?id=0&on=false"        to turn the switch off
 
-http://[Switch Ip Address]/rpc/Switch.GetStatus?id=0           to get the status of the switch
+"http://[Switch Ip Address]/rpc/Switch.GetStatus?id=0"           to get the status of the switch
 
 The control dialog has been tested with sucsees on a Shelly gen3 switch from 
 
