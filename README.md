@@ -8,13 +8,13 @@ The app saves data in semicolon separated text files, either in the phone’s in
 
 In Version 04 a dialog has been added in which the a measurement to be controlled can be specified along with parameters for on off control. PalmExec sends http commands via the local network to a switch. These commands are
 
-"http://[Switch Ip Address]/rpc/Switch.Set?id=0&on=true"         to turn the switch on
+"http://[Switch Ip Address]/rpc/Switch.Set?id=0&on=true"
 
-"http://[Switch Ip Address]/rpc/Switch.Set?id=0&on=false"        to turn the switch off
+"http://[Switch Ip Address]/rpc/Switch.Set?id=0&on=false"
 
-"http://[Switch Ip Address]/rpc/Switch.GetStatus?id=0"           to get the status of the switch
+"http://[Switch Ip Address]/rpc/Switch.GetStatus?id=0"
 
-The control dialog has been tested with sucsees on a Shelly gen3 switch from 
+The first two turn the switch on and off and the last command gets the switch status. The control dialog has been tested  on a Shelly gen3 switch with success. 
 
 The simple java code for PalmExec is on GitHub https://github.com/DavidCecil50/PalmExec This code can be modified for measuring specific compounds in real time. A phone and Sensit Smart can become a standalone instrument. 
 
